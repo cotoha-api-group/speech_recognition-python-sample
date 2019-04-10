@@ -1,0 +1,7 @@
+*.DS_Store
+/src/*
+!/src/sample.json
+/resources/*
+!/resources/sample.wav
+!/src/file.py
+!/src/streaming.py
