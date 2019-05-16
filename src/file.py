@@ -20,7 +20,8 @@ rate = wf.getframerate()
 wf.close()
 
 headers = {"Content-Type": "application/json;charset=UTF-8"}
-obj = {'grantType': 'client_credentials', 'clientId': client_id, 'clientSecret': client_secret}
+obj = {'grantType': 'client_credentials',
+       'clientId': client_id, 'clientSecret': client_secret}
 data_json = json.dumps(obj).encode("utf-8")
 response = requests.post(url=oauth_url, data=data_json, headers=headers)
 access_token = response.json()['access_token']
@@ -56,8 +57,11 @@ response = requests.post(url, headers=headers, files=files)
 
 if response.status_code == 200:  # statusが200のときのみresponseにjsonが含まれる
     for res in response.json():
-        if res['msg']['msgname'] == 'recognized' and res['result']['sentence'] != []:  # type=2ではsentenceの中身が空の配列の場合がある
-            print(res['result']['sentence'][0]['surface'])
+        if res['msg']['msgname'] == 'recognized':
+            # type=2ではsentenceの中身が空の配列の場合がある
+            if res['result']['sentence'] != []:
+                print(res['result']['sentence'][0]['surface'])
+
 else:
     print("STATUS_CODE:", response.status_code)
     print(response.text)

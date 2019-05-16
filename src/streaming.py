@@ -16,7 +16,7 @@ with open(json_name) as f:
 client_id = credential['client_id']
 client_secret = credential['client_secret']
 domain_id = credential['domain_id']
-Interval = 0.24  # 1メッセージあたり240msの音声データ
+Interval = 0.24  # 240msの音声データを240ms間隔で送信する
 
 
 class Requester:  # 開始要求(start)、データ転送、停止要求(stop)を行うクラス
@@ -32,17 +32,19 @@ class Requester:  # 開始要求(start)、データ転送、停止要求(stop)�
             "recognizeParameter.domainId": domain_id,
             "recognizeParameter.enableContinuous": 'true'
             }}
-        self.chunk = int(self.rate * Interval)
+        self.nframes = int(self.rate * Interval)  # 1回のリクエストで送信するフレーム数
 
     def get_token(self):  # apigeeでトークンを取得
         headers = {"Content-Type": "application/json;charset=UTF-8"}
-        obj = {'grantType': 'client_credentials', 'clientId': self.client_id, 'clientSecret': self.client_secret}
+        obj = {'grantType': 'client_credentials', 'clientId': self.client_id,
+               'clientSecret': self.client_secret}
         data_json = json.dumps(obj).encode("utf-8")
-        response = requests.post(url=oauth_url, data=data_json, headers=headers)
+        response = requests.post(url=oauth_url, data=data_json,
+                                 headers=headers)
         self.access_token = response.json()['access_token']
 
     def check_response(self):  # エラー発生時の処理
-        if self.response.status_code != 200 and self.response.status_code != 204:
+        if self.response.status_code not in [200, 204]:
             print("STATUS_CODE:", self.response.status_code)
             print(self.response.text)
             exit()
@@ -51,41 +53,53 @@ class Requester:  # 開始要求(start)、データ転送、停止要求(stop)�
         obj = self.param_json
         obj['msg'] = {'msgname': 'start'}
         data_json = json.dumps(obj).encode("utf-8")
-        headers = {"Content-Type": "application/json;charset=UTF-8", "Authorization": "Bearer "+self.access_token}
+        headers = {"Content-Type": "application/json;charset=UTF-8",
+                   "Authorization": "Bearer "+self.access_token}
         self.requests = requests.Session()
-        self.response = self.requests.post(url=self.url, data=data_json, headers=headers)
+        self.response = self.requests.post(url=self.url, data=data_json,
+                                           headers=headers)
         self.check_response()
-        self.unique_id = self.response.json()[0]['msg']['uniqueId']  # uniqueIdはデータ転送、停止要求に必要
+        # uniqueIdはデータ転送、停止要求に必要
+        self.unique_id = self.response.json()[0]['msg']['uniqueId']
 
     def print_result(self):  # レスポンスをパースし認識結果を標準出力
-        if self.response.status_code == 200:  # statusが200のときのみresponseにjsonが含まれる
+        # statusが200のときのみresponseにjsonが含まれる
+        if self.response.status_code == 200:
             for res in self.response.json():
-                if res['msg']['msgname'] == 'recognized' and res['result']['sentence'] != []:  # type=2ではsentenceの中身が空の配列の場合がある
-                    print(res['result']['sentence'][0]['surface'])
+                if res['msg']['msgname'] == 'recognized':
+                    # type=2ではsentenceの中身が空の配列の場合がある
+                    if res['result']['sentence'] != []:
+                        print(res['result']['sentence'][0]['surface'])
 
     def stop(self):  # 停止要求
-        headers = {"Unique-ID": self.unique_id, "Content-Type": "application/json;charset=UTF-8  ", "Authorization": "Bearer " + self.access_token}
+        headers = {"Unique-ID": self.unique_id,
+                   "Content-Type": "application/json;charset=UTF-8  ",
+                   "Authorization": "Bearer " + self.access_token}
         obj = {"msg": {"msgname": "stop"}}
         data_json = json.dumps(obj).encode("utf-8")
-        self.response = self.requests.post(url=self.url, data=data_json, headers=headers)
+        self.response = self.requests.post(url=self.url, data=data_json,
+                                           headers=headers)
         self.check_response()
         self.print_result()
 
     def post(self):  # レスポンスを読み取り、200番台であれば標準出力
-        self.response = self.requests.post(url=self.url, data=self.data, headers=self.headers)
+        self.response = self.requests.post(url=self.url, data=self.data,
+                                           headers=self.headers)
         self.check_response()
         self.print_result()
 
     def transfer(self):  # データ転送
         wf = wave.open(audio_name, 'rb')
-        self.headers = {"Content-Type": "application/octet-stream", "Unique-ID": self.unique_id, "Authorization": "Bearer " + self.access_token}
-        self.data = wf.readframes(self.chunk)
+        self.headers = {"Content-Type": "application/octet-stream",
+                        "Unique-ID": self.unique_id,
+                        "Authorization": "Bearer " + self.access_token}
+        self.data = wf.readframes(self.nframes)
         try:
             while self.data:
                 start = time.time()
                 self.post()  # レスポンスを同期処理で待つ
                 elapsed = time.time() - start
-                self.data = wf.readframes(self.chunk)
+                self.data = wf.readframes(self.nframes)
                 if elapsed < Interval:  # 最低でも240ms待つ
                     time.sleep(Interval - elapsed)
         except KeyboardInterrupt:  # Ctrl-Cで終了。その際に停止要求
