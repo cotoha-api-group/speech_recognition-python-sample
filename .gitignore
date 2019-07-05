@@ -5,3 +5,6 @@
 !/resources/sample.wav
 !/src/file.py
 !/src/streaming.py
+!/src/dictionary.py
+!/resources/sample_dict.tsv
+!/src/clean_response.py
