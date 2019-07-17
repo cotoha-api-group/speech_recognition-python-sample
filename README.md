@@ -2,7 +2,6 @@ COTOHA API 音声認識サンプルクライアント
 ====
 
 
-
 # Usage
 `/src/sample.json`を参考にして`/src/`以下に、あなたの認証情報を記載したjsonファイルを任意の名前で作成してください。以後、このjsonファイルを`[your_json]`と表記します。
 ## file.py  
@@ -17,6 +16,16 @@ COTOHA API 音声認識サンプルクライアント
 1. `/src`ディレクトリに移動し、コマンド`python3 streaming.py ../resources/sample.wav [your_json]`を実行してください。
 1. 認識結果が標準出力されます。
 
+## streaming_mic.py
+ストリーミング音声認識APIを利用して，マイク入力からテキスト化を行うPythonプログラムです．  
+`python3 streaming_mic.py [your_json]`を実行してください．
+
+**出力例**
+```bash
+Now Recording
+音声認識結果が逐次表示されます．
+認識結果ごとに改行されて表示されます．
+```
 
 ## dictionary.py
 ユーザ辞書登録APIを利用して，tsvファイルからユーザ辞書登録 及び ユーザ辞書クリアAPIを利用して，ユーザ辞書を削除するPythonプログラムです．  
