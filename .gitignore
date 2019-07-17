@@ -1,4 +1,5 @@
 *.DS_Store
+/.idea/*
 /src/*
 !/src/sample.json
 /resources/*
@@ -8,3 +9,4 @@
 !/src/dictionary.py
 !/resources/sample_dict.tsv
 !/src/clean_response.py
+!/src/streaming_mic.py
