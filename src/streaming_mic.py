@@ -97,13 +97,6 @@ class StreamingRequester:
         self.check_response()
         self.print_result()
 
-    def _transfer(self):
-        start = time.time()
-        self._post()
-        elapsed = time.time() - start
-        if elapsed < self.Interval:
-            time.sleep(self.Interval - elapsed)
-
     def listen(self):
 
         p = pyaudio.PyAudio()
@@ -120,7 +113,7 @@ class StreamingRequester:
         try:
             while True:
                 self.data = stream.read(self.nframes, exception_on_overflow=False)
-                self._transfer()
+                self._post()
 
         except KeyboardInterrupt:
             stream.close()
