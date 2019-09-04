@@ -10,3 +10,4 @@
 !/resources/sample_dict.tsv
 !/src/clean_response.py
 !/src/streaming_mic.py
+/log/*
