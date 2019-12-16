@@ -14,7 +14,6 @@ with open(json_name) as f:
 client_id = credential['client_id']
 client_secret = credential['client_secret']
 domain_id = credential['domain_id']
-Interval = 0.24  # 1メッセージあたり240msの音声データ
 wf = wave.open(audio_name, 'rb')
 rate = wf.getframerate()
 wf.close()
