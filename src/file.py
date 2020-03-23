@@ -2,13 +2,16 @@ import requests
 import json
 import sys
 import wave
+from clean_response import clean_response
 args = sys.argv
 audio_name = args[1]
 json_name = args[2]
+
 oauth_url = 'https://api.ce-cotoha.com/v1/oauth/accesstokens'
 model_id = 'ja-gen_tf-16'
 hostname = 'https://api.ce-cotoha.com/api/'
 url = hostname + 'asr/v1/speech_recognition/' + model_id
+
 with open(json_name) as f:
     credential = json.load(f)
 client_id = credential['client_id']
@@ -17,6 +20,18 @@ domain_id = credential['domain_id']
 wf = wave.open(audio_name, 'rb')
 rate = wf.getframerate()
 wf.close()
+
+# 一時辞書
+ls_dict = []
+if len(args)==4:
+    temporary_dict_name = args[3]
+    with open(temporary_dict_name) as f:
+        words = f.readlines()
+        for word in words:
+            keys = ["surface","reading","prob"]
+            values = word[:-1].split("\t")
+            d = dict(zip(keys, values))
+            ls_dict.append(d)
 
 headers = {"Content-Type": "application/json;charset=UTF-8"}
 obj = {'grantType': 'client_credentials',
@@ -35,9 +50,14 @@ request_json = {
         "param": {
             "baseParam.samplingRate": rate,
             "recognizeParameter.domainId": domain_id,
-            "recognizeParameter.enableContinuous": True
+            "baseParam.delimiter": False,
+            "baseParam.punctuation": True,
+            "baseParam.reading": True,
+            "recognizeParameter.maxResults": 2,
         }
 }
+request_json['words'] = ls_dict
+
 command_json = {
         "msg": {
             "msgname": "stop"
@@ -59,7 +79,8 @@ if response.status_code == 200:  # statusが200のときのみresponseにjsonが
         if res['msg']['msgname'] == 'recognized':
             # type=2ではsentenceの中身が空の配列の場合がある
             if res['result']['sentence'] != []:
-                print(res['result']['sentence'][0]['surface'])
+                print(clean_response(res['result']['sentence'][0]['surface'])) # 認識結果テキストのみを表示
+                # print(res['result']) # resultを全て出力
 
 else:
     print("STATUS_CODE:", response.status_code)
