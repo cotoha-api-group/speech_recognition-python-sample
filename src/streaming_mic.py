@@ -19,6 +19,17 @@ client_id = credential['client_id']
 client_secret = credential['client_secret']
 domain_id = credential['domain_id']
 
+# 一時辞書
+ls_dict = []
+if len(args)==3:
+    temporary_dict_name = args[2]
+    with open(temporary_dict_name) as f:
+        words = f.readlines()
+        for word in words:
+            keys = ["surface","reading","prob"]
+            values = word[:-1].split("\t")
+            d = dict(zip(keys, values))
+            ls_dict.append(d)
 
 class StreamingRequester:
     def __init__(self):
@@ -32,11 +43,17 @@ class StreamingRequester:
         self.url = url
         self.client_id = client_id
         self.client_secret = client_secret
-        self.param_json = {"param": {
+        self.param_json = {
+        "param": {
             "baseParam.samplingRate": self.rate,
             "recognizeParameter.domainId": domain_id,
-            "recognizeParameter.enableContinuous": 'true'
-            }}
+            "baseParam.delimiter": False,
+            "baseParam.punctuation": True,
+            "baseParam.reading": True,
+            "recognizeParameter.enableProgress": True,
+            "recognizeParameter.maxResults": 2,
+            }
+        }
 
     def get_token(self):
         headers = {"Content-Type": "application/json;charset=UTF-8"}
@@ -60,11 +77,13 @@ class StreamingRequester:
                 if res['msg']['msgname'] == 'recognized':
                     # type=2ではsentenceの中身が空の配列の場合がある
                     if res['result']['sentence'] != []:
-                        print(clean_response(res['result']['sentence'][0]['surface']))
+                        print(clean_response(res['result']['sentence'][0]['surface'])) # 認識結果テキストのみを表示
+                        # print(res['result']) # resultを全て出力
 
     def start(self):  # 開始要求
         obj = self.param_json
         obj['msg'] = {'msgname': 'start'}
+        obj['words'] = ls_dict
         data_json = json.dumps(obj).encode("utf-8")
         headers = {"Content-Type": "application/json;charset=UTF-8",
                    "Authorization": "Bearer " + self.access_token}

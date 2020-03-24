@@ -4,13 +4,16 @@ import json
 import wave
 import sys
 import time
+from clean_response import clean_response
 args = sys.argv
 audio_name = args[1]
 json_name = args[2]
+
 oauth_url = 'https://api.ce-cotoha.com/v1/oauth/accesstokens'
 model_id = 'ja-gen_tf-16'
 hostname = 'https://api.ce-cotoha.com/api/'
 url = hostname + 'asr/v1/speech_recognition/' + model_id
+
 with open(json_name) as f:
     credential = json.load(f)
 client_id = credential['client_id']
@@ -18,6 +21,17 @@ client_secret = credential['client_secret']
 domain_id = credential['domain_id']
 Interval = 0.24  # 240msの音声データを240ms間隔で送信する
 
+# 一時辞書
+ls_dict = []
+if len(args)==4:
+    temporary_dict_name = args[3]
+    with open(temporary_dict_name) as f:
+        words = f.readlines()
+        for word in words:
+            keys = ["surface","reading","prob"]
+            values = word[:-1].split("\t")
+            d = dict(zip(keys, values))
+            ls_dict.append(d)
 
 class Requester:  # 開始要求(start)、データ転送、停止要求(stop)を行うクラス
     def __init__(self):
@@ -27,11 +41,19 @@ class Requester:  # 開始要求(start)、データ転送、停止要求(stop)�
         wf = wave.open(audio_name, 'rb')
         self.rate = wf.getframerate()
         wf.close()
-        self.param_json = {"param": {
+        self.param_json = {
+        "param": {
             "baseParam.samplingRate": self.rate,
             "recognizeParameter.domainId": domain_id,
-            "recognizeParameter.enableContinuous": 'true'
-            }}
+            "baseParam.delimiter": False,
+            "baseParam.punctuation": True,
+            "baseParam.reading": True,
+            "recognizeParameter.enableProgress": True,
+            "recognizeParameter.maxResults": 2,
+            }
+        }
+
+
         self.nframes = int(self.rate * Interval)  # 1回のリクエストで送信するフレーム数
 
     def get_token(self):  # apigeeでトークンを取得
@@ -52,6 +74,7 @@ class Requester:  # 開始要求(start)、データ転送、停止要求(stop)�
     def start(self):  # 開始要求
         obj = self.param_json
         obj['msg'] = {'msgname': 'start'}
+        obj['words'] = ls_dict
         data_json = json.dumps(obj).encode("utf-8")
         headers = {"Content-Type": "application/json;charset=UTF-8",
                    "Authorization": "Bearer "+self.access_token}
@@ -69,7 +92,8 @@ class Requester:  # 開始要求(start)、データ転送、停止要求(stop)�
                 if res['msg']['msgname'] == 'recognized':
                     # type=2ではsentenceの中身が空の配列の場合がある
                     if res['result']['sentence'] != []:
-                        print(res['result']['sentence'][0]['surface'])
+                        print(clean_response(res['result']['sentence'][0]['surface'])) # 認識結果テキストのみを表示
+                        # print(res['result']) # resultを全て出力
 
     def stop(self):  # 停止要求
         headers = {"Unique-ID": self.unique_id,

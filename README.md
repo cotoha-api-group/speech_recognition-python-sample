@@ -28,16 +28,23 @@ Now Recording
 ```
 
 ## dictionary.py
-ユーザ辞書登録APIを利用して，tsvファイルからユーザ辞書登録 及び ユーザ辞書クリアAPIを利用して，ユーザ辞書を削除するPythonプログラムです．  
+ユーザ辞書登録APIをコールするPythonプログラムです．  
 
 ### ユーザ辞書登録
- 1. `/src` ディレクトリに移動し，コマンド `python3 dictionary.py [your_json] ../resources/sample_dict.tsv`を実行してください．
- 1. 登録成功の場合は，レスポンス200を返します．
+ 1. `/src` ディレクトリに移動し，コマンド `python3 dictionary.py [your_json] upload ../resources/sample_dict.tsv`を実行してください．
+ 1. 成功の場合は，レスポンス200を返します．
 
 ### ユーザ辞書クリア
- 1. `/src` ディレクトリに移動し，コマンド `python3 dictionary.py [your_json]` を実行してください．
- 1. 辞書クリア成功の場合は，レスポンス200を返します． 
+ 1. `/src` ディレクトリに移動し，コマンド `python3 dictionary.py [your_json] clear` を実行してください．
+ 1. 成功の場合は，レスポンス200を返します． 
 
+### ユーザ辞書適用状態取得
+ 1. `/src` ディレクトリに移動し，コマンド `python3 dictionary.py [your_json] isset` を実行してください．
+ 1. 成功の場合は，レスポンス200でユーザ辞書適用状態を返します．
+
+ ### ユーザ辞書ダウンロード
+ 1. `/src` ディレクトリに移動し，コマンド `python3 dictionary.py [your_json] download` を実行してください．
+ 1. 成功の場合は，レスポンス200でユーザ辞書を返します．  
 
 # Requirements
 - Python 3.x

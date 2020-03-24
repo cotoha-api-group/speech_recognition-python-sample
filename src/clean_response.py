@@ -8,6 +8,4 @@ def clean_response(text):  # 全角を半角に変換、スペースを除去、
     dic.update({chr(ord('Ａ')+i): chr(ord('Ａ')+i-OFFSET) for i in range(26)})  # 英字大文字
     dic.update({chr(ord('ａ')+i): chr(ord('ａ')+i-OFFSET) for i in range(26)})  # 英字小文字
     text = text.translate(str.maketrans(dic))
-    text = text.replace(" ", "")
-    text += "。"
     return text
