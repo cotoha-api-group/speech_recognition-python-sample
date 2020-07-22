@@ -46,6 +46,9 @@ Now Recording
  1. `/src` ディレクトリに移動し，コマンド `python3 dictionary.py [your_json] download` を実行してください．
  1. 成功の場合は，レスポンス200でユーザ辞書を返します．  
 
+ ## 注意点
+ 実際の音声でお使いの際は、サンプルプログラム内の`model_id`を音声に合わせて適切なモデルに変更して下さい。
+
 # Requirements
 - Python 3.x
 - requests
