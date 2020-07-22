@@ -14,7 +14,7 @@ if (len(args)==4):
     tsv_name = args[3]
 
 oauth_url = 'https://api.ce-cotoha.com/v1/oauth/accesstokens'
-model_id = 'ja-gen_tf-16'
+model_id = 'ja-gen_tf-16' # 適切なモデル名に変更が必要です。
 hostname = 'https://api.ce-cotoha.com/api/'
 url = hostname + 'asr/v1/speech_words/' + model_id
 
